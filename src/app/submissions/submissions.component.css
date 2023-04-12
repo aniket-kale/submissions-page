@@ -1,0 +1,11 @@
+#map {
+  height: calc(100vh - 158px);
+  min-height: calc(100vh - 158px);
+  max-height: calc(100vh - 158px);
+}
+
+.list-items {
+  overflow-y: auto;
+  height: calc(100vh - 157px);
+  max-height: calc(100vh - 157px);
+}
