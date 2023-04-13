@@ -1,5 +1,5 @@
 export class LayerControl {
-
+  // custom layer control, for more info: https://docs.mapbox.com/mapbox-gl-js/api/markers/#icontrol
   layerContainers: any;
   constructor(public layerContainer: any) {
     this.layerContainers = layerContainer;
