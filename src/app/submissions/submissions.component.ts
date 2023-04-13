@@ -6,6 +6,7 @@ import { LayerControl } from './shared/layers';
 import { SubmissionsService } from './submissions.service';
 import { Submission } from './shared/submissions.interface';
 import { Search } from './shared/search.model';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-submissions',
@@ -99,11 +100,12 @@ export class SubmissionsComponent implements OnInit {
       );
     }
 
-      if (this.searchModel.date) {
-        filteredData = filteredData.filter(
-          (submission) => new Date(submission.date) <= new Date(this.searchModel.date)
-        );
-      }
+    if (this.searchModel.date) {
+      filteredData = filteredData.filter(
+        (submission) =>
+          new Date(submission.date) <= new Date(this.searchModel.date)
+      );
+    }
 
     this.filteredSubmissions = [...filteredData];
 
@@ -158,6 +160,31 @@ export class SubmissionsComponent implements OnInit {
   }
 
   onClickOfExport() {
-    console.log('exported');
+    const fileToExport = this.filteredSubmissions.map(
+      (submission: Submission) => {
+        return {
+          Name: submission.name,
+          From: submission.from,
+          To: submission.to,
+          Date: submission.date,
+          Status: submission.status,
+          Coordinates: `{${submission.lng},${submission.lat}}`,
+        };
+      }
+    );
+    this.exportToExcel(
+      fileToExport,
+      'yourExcelFile-' + new Date().getTime() + '.xlsx'
+    );
+  }
+
+  public exportToExcel(element: any, fileName: string): void {
+    // generate workbook and add the worksheet
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(element);
+    const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+
+    // save to file
+    XLSX.utils.book_append_sheet(workbook, ws, 'Sheet1');
+    XLSX.writeFile(workbook, fileName);
   }
 }
