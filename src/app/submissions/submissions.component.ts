@@ -5,6 +5,7 @@ import { Constants } from '../shared/constants';
 import { LayerControl } from './shared/layers';
 import { SubmissionsService } from './submissions.service';
 import { Submission } from './shared/submissions.interface';
+import { Search } from './shared/search.model';
 
 @Component({
   selector: 'app-submissions',
@@ -15,6 +16,8 @@ export class SubmissionsComponent implements OnInit {
   map!: mapboxgl.Map;
   mapboxGeocoder!: MapboxGeocoder;
   submissions: Array<Submission> = [];
+  filteredSubmissions: Array<Submission> = [];
+  searchModel = new Search();
 
   constructor(private submissionsService: SubmissionsService) {}
 
@@ -71,12 +74,44 @@ export class SubmissionsComponent implements OnInit {
       .getSubmissions()
       .subscribe((submissions: Array<Submission>) => {
         this.submissions = submissions;
-        this.addFeaturesOnMap();
+        this.filteredSubmissions = [...this.submissions];
+        this.onChangeOfFilter();
       });
   }
 
+  onChangeOfFilter() {
+    let filteredData = [...this.submissions];
+    const searchString = this.searchModel.searchString.toLowerCase();
+
+    if (this.searchModel.searchString) {
+      filteredData = filteredData.filter((submission) => {
+        return (
+          submission.name.toLowerCase().includes(searchString) ||
+          submission.from.toLowerCase().includes(searchString) ||
+          submission.to.toLowerCase().includes(searchString)
+        );
+      });
+    }
+
+    if (this.searchModel.status) {
+      filteredData = filteredData.filter(
+        (submission) => submission.status === this.searchModel.status
+      );
+    }
+
+      if (this.searchModel.date) {
+        filteredData = filteredData.filter(
+          (submission) => new Date(submission.date) <= new Date(this.searchModel.date)
+        );
+      }
+
+    this.filteredSubmissions = [...filteredData];
+
+    this.addFeaturesOnMap();
+  }
+
   addFeaturesOnMap() {
-    const features = this.submissions.map((submission: Submission) => {
+    const features = this.filteredSubmissions.map((submission: Submission) => {
       return {
         type: 'Feature',
         geometry: {
@@ -90,9 +125,19 @@ export class SubmissionsComponent implements OnInit {
     this.map.loadImage(Constants.submissionImagePath, (error, image: any) => {
       if (error) throw error;
 
-      this.map.addImage('submission', image);
+      if (!this.map.hasImage('submission')) {
+        this.map.addImage('submission', image);
+      }
 
-      this.map.addSource('point', {
+      if (this.map.getLayer('submissionLayer')) {
+        this.map.removeLayer('submissionLayer');
+      }
+
+      if (this.map.getSource('submissionSource')) {
+        this.map.removeSource('submissionSource');
+      }
+
+      this.map.addSource('submissionSource', {
         type: 'geojson',
         data: {
           type: 'FeatureCollection',
@@ -101,9 +146,9 @@ export class SubmissionsComponent implements OnInit {
       });
 
       this.map.addLayer({
-        id: 'points',
+        id: 'submissionLayer',
         type: 'symbol',
-        source: 'point',
+        source: 'submissionSource',
         layout: {
           'icon-image': 'submission',
           // 'icon-size': 1.5

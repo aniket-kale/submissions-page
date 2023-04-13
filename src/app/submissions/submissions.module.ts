@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { SubmissionsRoutingModule } from './submissions-routing.module';
 import { SubmissionsComponent } from './submissions.component';
+import { FormsModule } from '@angular/forms';
 
 
 @NgModule({
@@ -11,7 +12,8 @@ import { SubmissionsComponent } from './submissions.component';
   ],
   imports: [
     CommonModule,
-    SubmissionsRoutingModule
+    SubmissionsRoutingModule,
+    FormsModule
   ]
 })
 export class SubmissionsModule { }
