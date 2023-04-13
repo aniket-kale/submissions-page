@@ -3,6 +3,8 @@ import * as mapboxgl from 'mapbox-gl';
 import * as MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import { Constants } from '../shared/constants';
 import { LayerControl } from './shared/layers';
+import { SubmissionsService } from './submissions.service';
+import { Submission } from './shared/submissions.interface';
 
 @Component({
   selector: 'app-submissions',
@@ -12,6 +14,9 @@ import { LayerControl } from './shared/layers';
 export class SubmissionsComponent implements OnInit {
   map!: mapboxgl.Map;
   mapboxGeocoder!: MapboxGeocoder;
+  submissions: Array<Submission> = [];
+
+  constructor(private submissionsService: SubmissionsService) {}
 
   ngOnInit() {
     this.initMapBox();
@@ -37,27 +42,73 @@ export class SubmissionsComponent implements OnInit {
 
     this.map.addControl(new mapboxgl.FullscreenControl());
 
-    // ref: https://github.com/mapbox/mapbox-gl-geocoder/blob/master/API.md#parameters
-    // this.mapboxGeocoder = new MapboxGeocoder({
-    //   accessToken: mapboxgl.accessToken,
-    //   mapboxgl: mapboxgl,
-    //   clearOnBlur: true,
-    //   clearAndBlurOnEsc: true,
-    // });
-
     this.map.on('load', () => {
+      this.getSubmissions();
       const layerControl = new LayerControl();
-
       this.map.addControl(layerControl, 'bottom-right');
-      // const customControlForButtons = new Control({ element: this.createButtonsOnMap() });
-      // this.loaded.mapBox = true;
-      // // Fly to the region location if user changed the region
-      // if (this.loadNewDataInsteadOfStored) {
-      //     this.flyTo();
-      // }
-      // this.addAssetImagesOnMap();
-      // this.addResearchStationImageOnMap();
-      // this.addLocationsOnMap();
+      // For development purpose
+      const win: any = window;
+      win.mapbox = this.map;
+
+      this.map.flyTo({
+        center: [-79.5242, 43.637],
+        zoom: 10.5,
+        speed: 1.5,
+        curve: 1,
+        easing(t) {
+          return t;
+        },
+      });
+    });
+
+    this.map.on('click', (e) => {
+      console.log('e: ', e.lngLat);
+    });
+  }
+
+  getSubmissions(): void {
+    this.submissionsService
+      .getSubmissions()
+      .subscribe((submissions: Array<Submission>) => {
+        this.submissions = submissions;
+        this.addFeaturesOnMap();
+      });
+  }
+
+  addFeaturesOnMap() {
+    const features = this.submissions.map((submission: Submission) => {
+      return {
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [submission.lng, submission.lat],
+        },
+        properties: {},
+      };
+    });
+
+    this.map.loadImage(Constants.submissionImagePath, (error, image: any) => {
+      if (error) throw error;
+
+      this.map.addImage('submission', image);
+
+      this.map.addSource('point', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: features as any,
+        },
+      });
+
+      this.map.addLayer({
+        id: 'points',
+        type: 'symbol',
+        source: 'point',
+        layout: {
+          'icon-image': 'submission',
+          // 'icon-size': 1.5
+        },
+      });
     });
   }
 }
