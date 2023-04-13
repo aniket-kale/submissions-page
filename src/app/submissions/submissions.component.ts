@@ -156,4 +156,8 @@ export class SubmissionsComponent implements OnInit {
       });
     });
   }
+
+  onClickOfExport() {
+    console.log('exported');
+  }
 }
