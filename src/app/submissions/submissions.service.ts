@@ -9,15 +9,24 @@ import { Submission } from './shared/submissions.interface';
 })
 export class SubmissionsService {
 
+  // Defining event listener to catch base map layer change event
   baseMapSwitcher$: BehaviorSubject<string> = new BehaviorSubject('');
 
   constructor(private httpClient: HttpClient) { }
 
+  /**
+   * Used to fetch the submissions data
+   * @returns <Array<Submission>
+   */
   getSubmissions(): Observable<Array<Submission>> {
     return this.httpClient.get<Array<Submission>>(Constants.apiUrl);
   }
 
-  getLayerContainer() {
+  /**
+   * Used to build layer button and it's functionality
+   * @returns HTMLElement
+   */
+  getLayerContainer(): HTMLElement {
     const button = document.createElement('button');
     button.className =
       'rounded-full bg-indigo-600 p-1.5 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 block';
@@ -31,6 +40,7 @@ export class SubmissionsService {
     layerSwitcher.className = 'px-2.5 bg-white py-0.5 rounded-md hidden';
 
     const spaceDiv = document.createElement('space-y-4');
+    // Radio buttons
     const radioButtons = [
       {
         id: 'satelight',
@@ -44,6 +54,7 @@ export class SubmissionsService {
       },
     ];
 
+    // Creating actual radio buttons to change the style
     radioButtons.forEach(style => {
       const flexDiv = document.createElement('div');
       flexDiv.className = 'flex items-center';
@@ -64,6 +75,7 @@ export class SubmissionsService {
 
       flexDiv.appendChild(label);
 
+      // adding event listener to catch event as soon as changes the radio button selection
       input.addEventListener('click', (event: Event) => {
         let selectedStyle = radioButtons[0].value;
         const currentTarget: any = event.target;
@@ -71,6 +83,7 @@ export class SubmissionsService {
           selectedStyle = radioButtons[1].value;
         }
 
+        // triggering an event to change basemap to selected basemap style
         this.baseMapSwitcher$.next(selectedStyle);
       });
 
@@ -79,6 +92,7 @@ export class SubmissionsService {
 
     layerSwitcher.appendChild(spaceDiv);
 
+    // on mouse over event to show layer toggler
     button.addEventListener('mouseenter', () => {
       const from = 'block';
       const to = 'hidden';
@@ -86,6 +100,7 @@ export class SubmissionsService {
       layerSwitcher.classList.replace(to, from);
     });
 
+    // on mouse leave event to show layer button
     layerSwitcher.addEventListener('mouseleave', () => {
       const from = 'hidden';
       const to = 'block';
@@ -96,6 +111,8 @@ export class SubmissionsService {
     const div = document.createElement('div');
     div.appendChild(button);
     div.appendChild(layerSwitcher);
+
+    // returning whole HTMLElement with layer toggle button and layer toggler
     return div;
   }
 

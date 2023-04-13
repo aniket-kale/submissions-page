@@ -11,6 +11,7 @@ const routes: Routes = [
     path: 'submittions',
     loadChildren: () => import('./submissions/submissions.module').then(m => m.SubmissionsModule)
   },
+  // if wildcard routes redirect to submissions to avoid errors
   {
     path: '**',
     redirectTo: 'submittions',

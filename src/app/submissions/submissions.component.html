@@ -4,6 +4,7 @@
   </div>
   <div class="grid grid-flow-col grid-rows-1 gap-4">
     <div>
+      <!-- Filter Section -->
       <div class="grid grid-flow-col grid-rows-1 gap-4">
         <div>
           <input [(ngModel)]="searchModel.searchString" (input)="onChangeOfFilter()" type="search" name="search" id="search"
@@ -33,6 +34,7 @@
         </div>
       </div>
     </div>
+    <!-- Map/List button and export button -->
     <div class="flex justify-end">
       <span class="inline-flex rounded-md shadow-sm cursor-not-allowed isolate">
         <button type="button"
@@ -101,6 +103,7 @@
         </div>
       </div>
     </div>
+    <!-- Actual Mapbox -->
     <div class="col-span-3">
       <div id="map"></div>
     </div>
