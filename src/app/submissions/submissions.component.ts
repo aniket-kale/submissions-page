@@ -23,6 +23,13 @@ export class SubmissionsComponent implements OnInit {
   constructor(private submissionsService: SubmissionsService) {}
 
   ngOnInit() {
+    this.submissionsService.baseMapSwitcher$.subscribe(
+      (baseMapStyle: string) => {
+        if (baseMapStyle) {
+          this.onChangeOfBaseMap(baseMapStyle);
+        }
+      }
+    );
     this.initMapBox();
   }
 
@@ -48,7 +55,8 @@ export class SubmissionsComponent implements OnInit {
 
     this.map.on('load', () => {
       this.getSubmissions();
-      const layerControl = new LayerControl();
+      const layerContainer = this.submissionsService.getLayerContainer();
+      const layerControl = new LayerControl(layerContainer);
       this.map.addControl(layerControl, 'bottom-right');
       // For development purpose
       const win: any = window;
@@ -63,10 +71,6 @@ export class SubmissionsComponent implements OnInit {
           return t;
         },
       });
-    });
-
-    this.map.on('click', (e) => {
-      console.log('e: ', e.lngLat);
     });
   }
 
@@ -186,5 +190,12 @@ export class SubmissionsComponent implements OnInit {
     // save to file
     XLSX.utils.book_append_sheet(workbook, ws, 'Sheet1');
     XLSX.writeFile(workbook, fileName);
+  }
+
+  onChangeOfBaseMap(style: string) {
+    this.map.setStyle(style);
+    this.map.on('style.load', () => {
+      this.addFeaturesOnMap();
+    });
   }
 }
